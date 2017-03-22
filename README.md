@@ -17,7 +17,7 @@ A dnschef.attacker.com 10.11.12.13
  - `10.11.12.13` : The public IP address that is 
  - `attacker.com` : A domain name you own
 
-It is highly recommended to use this [modify version of DNS Chef](./dnschef) that decoded the metadata place.
+It is highly recommended to use this [modify version of DNS Chef](./dnschef) that decoded the metadata placed by the scanner.
 
 ## Single IP scan
 
@@ -33,7 +33,7 @@ python breakfast.py -t 192.168.40.1 -p 7001 -d scanner.attacker.com
 
 ## Mass Scan
 
-Build a list of ip/hostname with open **HTTP** ports. Use 
+Build a list of ip/hostname with open **HTTP** ports. Use a port scanner such as NMAP to identify port that respond to HTTP.
 ```
 $ cat list_servers.txt
 192.168.40.10:80
