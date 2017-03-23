@@ -10,7 +10,7 @@ The DNS Chef instance is a requirement to see the results of the scan.
 
 This is the typical DNS configuration expected on your domain registrar. It will signify to other DNS servers that all subdomains of `attacker.com` must be resolved by the DNS server host at `10.11.12.13`.
 ```
-NS scanner.attacker.com dnschef.attacker.com
+NS scanme.attacker.com dnschef.attacker.com
 A dnschef.attacker.com 10.11.12.13
 ```
 
@@ -28,7 +28,7 @@ python dnschef.py -q --fakeip 127.0.0.1 -i 0.0.0.0
 
 Launch the scanner
 ```
-python breakfast.py -t 192.168.40.1 -p 7001 -d scanner.attacker.com
+python breakfast.py -t 192.168.40.1 -p 7001 -d scanme.attacker.com
 ```
 
 ## Mass Scan
@@ -51,7 +51,7 @@ python dnschef.py -q --fakeip 127.0.0.1 -i 0.0.0.0
 
 Launch the scanner
 ```
-cat list_servers.txt | python breakfast.py -stdin -d scanner.attacker.com
+cat list_servers.txt | python breakfast.py -stdin -d scanme.attacker.com
 ```
 
 ## Expected response
@@ -60,7 +60,7 @@ If the vulnerability is confirmed, the expected trace from DNS Chef is as follow
 
 ```
 ['843', 'jboss', '192.168.40.24', '8181']
-[06:16:44] 69.165.172.165: cooking the response of type 'A' for 3834333a6a626f73733a3132372e302e302e313a38313831.scan.fsociety.com to 127.0.0.1
+[06:16:44] 69.165.172.165: cooking the response of type 'A' for 3834333a6a626f73733a3132372e302e302e313a38313831.scanme.fsociety.com to 127.0.0.1
 ['914', 'jenkins-cli', '192.168.40.102', '8080']
-[06:16:45] 173.194.103.14: cooking the response of type 'A' for 3931343a6a656e6b696e732d636c693a3132372e302e302e313a38303830.scanner.fsociety.com to 127.0.0.1
+[06:16:45] 173.194.103.14: cooking the response of type 'A' for 3931343a6a656e6b696e732d636c693a3132372e302e302e313a38303830.scanme.fsociety.com to 127.0.0.1
 ```
