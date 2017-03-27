@@ -59,6 +59,9 @@ def scanning_host(host,port,dns_suffix):
 def build_gadget(file, replacements):
     """
     It read the gadget file and replace the place holder "\x04AAAA" with the value specify
+    Parameters
+    ----------
+      - 
     """
     with open(file,"rb") as file:
         gadget_bytes = file.read()
@@ -82,7 +85,7 @@ def buildDnsGadgetCC1(dns_host):
 
 def buildDnsGadgetUrlDns(dns_host):
     """
-    Build a payload using a minimal payload by Gabriel Lawrence
+    Build a payload using a minimal gadget by Gabriel Lawrence
     https://blog.paranoidsoftware.com/triggering-a-dns-lookup-using-java-deserialization/
     """
     return build_gadget("gadgets/UrlDns", {"\x04AAAA":dns_host,"\x0bhttp://AAAA":"http://"+dns_host})
